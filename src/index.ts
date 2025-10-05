@@ -49,10 +49,10 @@ const display = (letters: number[], c = ' ', guesses: number[] | undefined = und
   })
 }
 
-const possibleLetters = (s: number) => Object.entries(letters).filter(([l, b]) => (b & s) === s).map(l => l[0])
+const possibleLetters = (s: number, x: number | undefined = undefined) => Object.entries(letters).filter(([l, b]) => (b & s) === s && (!x || (b & x) === 0)).map(l => l[0])
 
-const possibleWords = (ss: number[]) => {
-  const re = new RegExp(ss.map(s => '[' + possibleLetters(s).join('') + ']').join(''))
+const possibleWords = (ss: number[], x: number[] | undefined = undefined) => {
+  const re = new RegExp(ss.map((s, i) => '[' + possibleLetters(s, x?.[i]).join('') + ']').join(''))
   return wordList.filter(w => w.match(re))
 }
 
@@ -95,7 +95,7 @@ while (tries && possibilites > 20) {
 let guesses = [0, 0, 0, 0, 0]
 while (true) {
   display(cipher, '▢', guesses)
-  console.log(possibleWords(cipher).length, 'possibilites')
+  console.log(possibleWords(cipher, guesses).length, 'possibilites')
   const guess = prompt('guess word or "letter(1-5), row(1-5), col(1-3)": ')
   if (guess.match(/\d[ ,]+\d[ ,]+\d/)) {
     const [l, r, c] = guess.split(/[ ,]+/).map(n => parseInt(n, 10))
@@ -105,6 +105,8 @@ while (true) {
     } else {
       guesses[l - 1] |= guessBit
     }
+  } else if (guess === 'p') {
+    console.log(possibleWords(cipher, guesses))
   } else {
     console.log(answer.join(''), answer.join('') === guess ? '   Correct!' : '   Wrong!')
     break
